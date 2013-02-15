@@ -26,7 +26,7 @@ module Devise
 
       included do
         before_create :generate_confirmation_token, :if => :confirmation_required?
-        after_create  :send_confirmation_instructions, :if => :confirmation_required?
+        after_create  :send_confirmation_instructions, :if => :send_confirmation_notification?
       end
 
       # Confirm a user by setting its confirmed_at to actual time. If the user
@@ -72,6 +72,10 @@ module Devise
       # to be generated, call skip_confirmation!
       def skip_confirmation!
         self.confirmed_at = Time.now.utc
+      end
+
+      def skip_confirmation_notification!
+        @skip_confirmation_notification = true
       end
 
       protected
@@ -130,6 +134,10 @@ module Devise
         def after_password_reset
           super
           confirm! unless confirmed?
+        end
+
+        def send_confirmation_notification?
+          confirmation_required? && !@skip_confirmation_notification
         end
 
       module ClassMethods
